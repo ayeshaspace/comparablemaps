@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>CSVLayer sample</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/3.42/esri/css/esri.css">
+    <style>
+      html, body, #map {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background-color: #FFF;
+        overflow: hidden;
+        font-family: "Trebuchet MS";
+      }
+    </style>
+    <script src="https://js.arcgis.com/3.42/"></script>
+    <script>
+      var map, csv;
+
+      require([
+        "esri/map",
+        "esri/layers/CSVLayer",
+        "esri/Color",
+        "esri/symbols/SimpleMarkerSymbol",
+        "esri/renderers/SimpleRenderer",
+        "esri/config",
+        "esri/layers/LabelClass",
+        "esri/symbols/TextSymbol",
+      ], function(
+        Map, CSVLayer, Color, SimpleMarkerSymbol, SimpleRenderer, esriConfig,
+        LabelClass, TextSymbol
+      ) {
+
+        // Use CORS
+        esriConfig.defaults.io.corsEnabledServers.push("earthquake.usgs.gov"); // supports CORS
+
+        map = new Map("map", {
+          basemap: "streets",
+          center: [ -81.19, 28.91642 ],
+          zoom: 16,
+          showLabels : true,
+        });
+        csv = new CSVLayer('./Mapping example.csv'
+        );
+        var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
+        var marker = new SimpleMarkerSymbol("solid", 15, null, orangeRed);
+        var renderer = new SimpleRenderer(marker);
+        csv.setRenderer(renderer);
+
+        const dotlabel = "$csv.Label";
+
+        const dotlabelClass = {
+          labelExpressionInfo: {
+            'value': "{Label}"
+          },
+          labelPlacement: "above-center",
+        };
+        dotlabelClass.symbol = {
+          type: "text",
+          color: [0, 200, 0, 255],  // white
+          font: { family: "Arial Unicode MS", size: 12, weight: "bold" },
+          haloColor: [255, 255, 255, 255],  // black
+  haloSize: 1
+        };
+
+
+        const dotaddress = "$csv.Address";
+        const dotlabeladdress= {
+          labelExpressionInfo:{
+          'value': "{Address}"
+        },
+        labelPlacement : "below-center",
+      };
+
+      dotlabeladdress.symbol = {
+          type: "text",
+          font: { family: "Arial", size: 9 },
+        };
+
+         //this is the very least of what should be set within the JSON  
+         var json = {
+          "labelExpressionInfo": {"value": "{Label}" + "{Address}"} 
+          
+
+        };
+
+        //create instance of LabelClass (note: multiple LabelClasses can be passed in as an array)
+        var labelClass = new LabelClass(json);
+        csv.setLabelingInfo([ dotlabelClass, dotlabeladdress ]);
+
+        map.addLayer(csv); 
+      });
+
+    </script>
+  </head>
+
+  <body>
+    <div id="map"></div>
+  </body>
+</html>
